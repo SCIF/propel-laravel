@@ -50,7 +50,7 @@ return [
                         # Connection class. One of the Propel\Runtime\Connection classes
                         'classname' => 'Propel\Runtime\Connection\ConnectionWrapper',
                         # The PDO dsn
-                        'dsn' => $item['driver'] . ':host=' . $item['host'] . ';port=' . (empty($item['port']) ? '3306' : $item['port']) . ';dbname=' . $item['database'],
+                        'dsn' => $item['driver'] . ':host=' . $item['host'] . (!empty($item['port']) ? 'port=;'.$item['port'] : '') . ';dbname=' . $item['database'],
                         'user' => $item['username'],
                         'password' => $item['password'],
                         # Driver options. See http' => '//www.php.net/manual/en/pdo.construct.php
@@ -63,8 +63,13 @@ return [
                         'settings' => [
                             'charset' => $item['charset'],
                             #Array of queries to run when the database connection is initialized
-                            'query' => [
-                                'SET NAMES utf8 COLLATE utf8_unicode_ci, COLLATION_CONNECTION = utf8_unicode_ci, COLLATION_DATABASE = utf8_unicode_ci, COLLATION_SERVER = utf8_unicode_ci'
+                            'query' => [ call_user_func(function() use ($item) {
+                                    if ($item['driver'] == 'mysql') {
+                                        return 'SET NAMES utf8 COLLATE utf8_unicode_ci, COLLATION_CONNECTION = utf8_unicode_ci, COLLATION_DATABASE = utf8_unicode_ci, COLLATION_SERVER = utf8_unicode_ci';
+                                    } elseif ($item['driver'] == 'pgsql') {
+                                        return "SET NAMES 'UTF8'";
+                                    }
+                                })
                             ],
                         ],
                         'slaves' => [
